@@ -1,0 +1,91 @@
+routes standerd form ->resource controller .
+user create by admin.
+template route change according to template.
+checkbox fill according to past .
+seeder role, permission, user.
+after sucess sbadmin template intergrate in project. 
+
+--------------------------
+showing error and success
+layout set
+change password after login
+article create accoring to reffered url->image insert
+https://omega.comwebdemo.com.au/gateway-global/admin/pages ->admin@getnada.com password->12345678
+menu show according to role
+page access dennied according to role
+
+---------
+after that page crud
+
+
+
+-------------------------------
+not show create command if no article record found - work on admin role
+
+
+
+
+
+-> Ceate seeder for below permissions
+Article permission:
+    
+    List Article
+    Create Article
+    Edit Article
+    View Article
+    Delete Article
+
+Page permission:
+    
+    List Page
+    Create page
+    Edit Page
+    View Page
+    Delete Page    
+
+User permission:
+    
+    List User
+    Create User
+    Edit User
+    View User
+    Delete User    
+
+Role permission:
+    
+    List Role
+    Create Role
+    Edit Role
+    View Role
+    Delete Role   
+ 
+-> Ceate seeder for below roles
+permission:
+    
+    Admin -> With all permission
+    Writer -> with all Article, Page
+    Author -> with all Article
+    Manager -> with all User, Roles
+    Employee -> with View Article, Page.
+
+-> Create  5 Users every user has single role.
+-> Role has multiple persmissions 
+-> Every user have multiple above permisions.
+
+Step sedder run.
+First Role seeder 
+Second Permissions seeder
+Third user seeder
+
+User->assignRoles;
+role->assignPermission;
+User->assignPermission;
+
+-> Add below condition code for all controllers for all methods 
+ if ($user->hasRole(Role::all()) || $user->can('edit article'))
+
+-> Current user can not be update own roles & permission.
+
+-> Add featured Image option in Article & Page for both while creating or update.
+
+-> Cange password for every logged in user.
