@@ -5,6 +5,7 @@ namespace App\Http\Controllers\role;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Exception;
+use GuzzleHttp\RetryMiddleware;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
@@ -18,17 +19,23 @@ class RolePermissionController extends Controller
      */
     public function index()
     {
-        try{
-            $data = Role::all();
-            if(count($data) == 0){
-                throw new Exception('Please Create role');
+        if(auth()->user()->can('list role')){
+
+            try{
+                $data = Role::all();
+                if(count($data) == 0){
+                    throw new Exception('Please Create role');
+                }
+                
+                
+                return view('rolesandpermission.index', ['data'=>$data]);
+            }catch(Exception $e){
+                return view('errors.role', ['error'=>$e->getMessage()]);
+                
             }
-
-
-            return view('rolesandpermission.index', ['role'=>$data]);
-        }catch(Exception $e){
-            return view('errors.role', ['error'=>$e->getMessage()]);
-
+        
+        }else{
+            return view('errors.unauthenticate');
         }
     }
 
@@ -40,8 +47,14 @@ class RolePermissionController extends Controller
     public function create()
 
     {
-        $permission = Permission::all();
-        return view('rolesandpermission.create', ['permission'=>$permission]);
+        if(auth()->user()->can('create role')){
+
+            $permission = Permission::all();
+            return view('rolesandpermission.create', ['permission'=>$permission]);
+        
+        }else{
+            return view('errors.unauthenticate');
+        }
     }
 
     /**
@@ -52,25 +65,32 @@ class RolePermissionController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name'=>'required|max:14'
-        ]);
-        $role = Role::create(['name'=>$request->name]);
-        $permisson = $request->first;
-        $i = 0;
-        
-        
-        while($i<(count($permisson))){
-            
-            $permisson[$i];
-            $permission = Permission::where(['id'=>$permisson[$i]])->first();
-            $role->givePermissionTo($permission);
-            $i++;
+        if(auth()->user()->can('create role')){
 
+            $request->validate([
+                'name'=>'required|max:14'
+                ]);
+                $role = Role::create(['name'=>$request->name]);
+                $permisson = $request->first;
+                $i = 0;
+                
+                
+                while($i<(count($permisson))){
+                    
+                    $permisson[$i];
+                    $permission = Permission::where(['id'=>$permisson[$i]])->first();
+                    $role->givePermissionTo($permission);
+                    $i++;
+                    
+                }
+                return redirect()->back()->with('success', 'Successfully Created');
+        
+        }else{
+            return view('errors.unauthenticate');
+           
         }
-        return redirect('role')->with('success', 'Successfully Created');
     }
-
+            
     /**
      * Display the specified resource.
      *
@@ -79,10 +99,7 @@ class RolePermissionController extends Controller
      */
     public function show($id)
     {
-        $permission = Permission::all();
-        $role_have_permissions = DB::table('role_has_permissions')->where(['role_id'=> $id])->get();
-
-        return view('rolesandpermission.update', ['id'=>$id, 'permission'=>$permission, $role_have_permissions]);
+        //
     }
 
     /**
@@ -93,7 +110,17 @@ class RolePermissionController extends Controller
      */
     public function edit($id)
     {
-        //
+        if(auth()->user()->can('edit role')){
+
+            $role = Role::find($id);
+            $permission = Permission::all();
+            $role_have_permissions = $role->getPermissionNames([$permission]);
+            
+            return view('rolesandpermission.update', ['id'=>$id, 'role'=>$role, 'permission'=>$permission, 'role_have_permissions'=>$role_have_permissions]);
+        
+        }else{
+            return view('errors.unauthenticate');
+        }
     }
 
     /**
@@ -105,32 +132,42 @@ class RolePermissionController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try{
-            $role = Role::find($request->hidden);
-            $permisson = $request->permissions;
-            $i = 0;
-            $permissions = Permission::all();
+        if(auth()->user()->can('edit role')){
 
-            foreach($permissions as $permission){
-                $role->revokePermissionTo($permission);
-            }
+            try{
+                $role = Role::find($request->hidden);
+                $permisson = $request->permissions;
+                $i = 0;
+                $permissions = Permission::all();
 
+                if($request->name != null){
+                    Role::where(['id'=>$request->hidden])->update(['name'=>$request->name]);
+                }    
+                
+                foreach($permissions as $permission){
+                    $role->revokePermissionTo($permission);
+                }
+                
+                
+                
+                while($i<(count($permisson))){
+                    
+                    $permisson[$i];
+                    $permission = Permission::where(['id'=>$permisson[$i]])->first();          
+                    $role->givePermissionTo($permission);
+                    $i++;
+                    
+                }
+                return redirect()->back()->with('success', 'Successfully Updated');
+                
+            }catch(Exception $e){
+                return view('errors.role', ['error'=>$e->getMessage()]);
+                
+            }   
         
-        
-        while($i<(count($permisson))){
-            
-            $permisson[$i];
-            $permission = Permission::where(['id'=>$permisson[$i]])->first();          
-            $role->givePermissionTo($permission);
-            $i++;
-
+        }else{
+            return view('errors.unauthenticate');
         }
-        return redirect('role')->with('success', 'Successfully Updated');
-
-        }catch(Exception $e){
-            return view('errors.role', ['error'=>$e->getMessage()]);
-            
-        }   
     }
 
     /**
@@ -141,7 +178,14 @@ class RolePermissionController extends Controller
      */
     public function destroy($id)
     {
-        Role::destroy($id);
-        return redirect('role');
+        if(auth()->user()->can('delete role')){
+
+            Role::destroy($id);
+            return redirect('role');
+        
+        }else{
+            return view('errors.unauthenticate');
+
+        }
     }
 }

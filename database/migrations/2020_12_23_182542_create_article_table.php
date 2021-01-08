@@ -16,10 +16,10 @@ class CreateArticleTable extends Migration
         Schema::create('article', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('sub_heading');
+            $table->string('sub_heading')->nullable();
             $table->string('meta_key');
-            $table->string('short_description');
-            $table->string('meta_description');
+            $table->string('short_description')->nullable();
+            $table->string('meta_description')->nullable();
             $table->longText('content');
             $table->timestamps();
         });

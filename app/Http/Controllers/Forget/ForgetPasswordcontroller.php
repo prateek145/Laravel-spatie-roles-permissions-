@@ -34,7 +34,7 @@ class ForgetPasswordcontroller extends Controller
             }
 
         }catch(Exception $e){
-                return view('errors.forget', ['error'=>$e->getMessage()]);
+                return redirect()->back()->with('error', $e->getMessage());
         }
     }
 
@@ -54,16 +54,17 @@ class ForgetPasswordcontroller extends Controller
         try{
             if($request->password == $request->password1){
                 User::where(['id'=>$request->hidden])->update(['password'=>Hash::make($request->password)]);
-                return redirect('login');
+                return redirect('forget')->with('success', 'Succesfully Password Change');
              
             }else{
                 return redirect()->back()->with('error', 'password does not match');
             }
 
         }catch(Exception $e){
-            return view('errors.forget',['error'=>$e->getMessage()]);
+            return redirect()->back()->with('error', $e->getMessage());
 
         }
 
     }
+
 }

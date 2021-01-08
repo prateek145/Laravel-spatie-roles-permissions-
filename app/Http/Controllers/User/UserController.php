@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Exception;
 use App\Models\User;
+use GuzzleHttp\RetryMiddleware;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -20,18 +21,25 @@ class UserController extends Controller
      */
     public function index()
     {
-        try{
-            $data = User::all();
-            if(count($data) == 0){
-                throw new Exception('No user found');
+        if(auth()->user()->can('list user')){
+            try{
+                $data = User::paginate(10);
+                if(count($data) == 0){
+                    throw new Exception('No user found');
+                }
+                return view('user.index', ['data'=>$data]);
+               
+    
+            }catch(Exception $e){
+                return view('errors.user', ['error'=>$e->getMessage()]);
+    
             }
-            return view('user.index', ['data'=>$data]);
-           
-
-        }catch(Exception $e){
-            return view('errors.user', ['error'=>$e->getMessage()]);
 
         }
+        else{
+            return view('errors.unauthenticate');
+        }
+        
     }
 
     /**
@@ -41,7 +49,15 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('user.create');
+        if(auth()->user()->can('create user')){
+
+            $role = Role::all();
+            $permissions = Permission::all();
+            
+            return view('user.create', ['role'=>$role, 'permissions'=>$permissions]);
+        }else{
+            return view('errors.unauthenticate');
+        }
     }
 
     /**
@@ -52,36 +68,51 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required',
-            'password'=>'required|min:8',
-            're_password' => 'required|min:8'
-        ]);
+        if(auth()->user()->can('create user')){
 
-        try{
-            if($request->password == $request->re_password){
-                $user = new User();
-                $user->name = $request->name;
-                $user->email = $request->email;
-                $user->password = Hash::make($request->password);
-                $user_create = $user->save();
-                if($user_create){
-                    return redirect('user')->with('success', 'Successfully Created');
-                }
-                else{
-                    return redirect()->back()->with('error', 'Does not create');
-                }
+            $request->validate([
+                'name' => 'required',
+                'email' => 'required',
+                'password'=>'required|min:8',
+                're_password' => 'required|min:8'
+                ]);
                 
-             
+                try{
+                    if($request->password == $request->re_password){
+                        $user = new User();
+                        $user->name = $request->name;
+                        $user->email = $request->email;
+                        $user->password = Hash::make($request->password);
+                        
+                        if($request->roles != null){
+                            $user->assignRole([$request->roles]);
+                        }
+                        
+                        if($request->permissions != null){
+                            $user->givePermissionTo([$request->permissions]);
+                        }
+                        
+                        $user_create = $user->save();
+                        
+                        if($user_create){
+                            return redirect('user')->with('success', 'Successfully Created');
+                        }
+                        else{
+                            return redirect()->back()->with('error', 'Does not create');
+                        }
+                        
+                        
+                    }else{
+                        return redirect()->back()->with('error', 'password does not match');
+                    }
+                    
+                }catch(Exception $e){
+                    return view('errors.forget',['error'=>$e->getMessage()]);
+                    
+                }
             }else{
-                return redirect()->back()->with('error', 'password does not match');
+                return view('errors.unauthenticate');
             }
-
-        }catch(Exception $e){
-            return view('errors.forget',['error'=>$e->getMessage()]);
-
-        }
     }
 
     /**
@@ -92,26 +123,31 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        try{
-            $user = User::find($id);
-            if ($user->hasRole(Role::all()) || $user->can('view article')){
-            $data = User::find($id);
-            // dd($data->getAllPermissions(), $data->hasAllRoles(Role::all())); 
-            if(!$data){
-                throw new Exception('User does not exists');
-            }
-            $roles = Role::all();
-            $permissions = Permission::all();
-            
-            $user_have_permission = DB::table('model_has_permissions')->select('permission_id')->where('model_id',$id)->get()->pluck('permission_id');
-            
-            return view('user.update', ['data'=>$data, 'roles'=>$roles, 'permissions'=>$permissions, 'id'=>$id,'user_have_permission'=>$user_have_permission->toArray() ]);
-        }else{
-            throw new Exception("You don't have permission to perform this action");
-        }
+        if(auth()->user()->can('view user')){
 
-        }catch(Exception $e){
-            return redirect()->back()->with('error', $e->getMessage());
+            try{
+                $user = User::find($id);
+                if ($user->hasRole(Role::all()) || $user->can('view article')){
+                    $data = User::find($id);
+                    // dd($data->getAllPermissions(), $data->hasAllRoles(Role::all())); 
+                    if(!$data){
+                        throw new Exception('User does not exists');
+                    }
+                    $roles = Role::all();
+                    $permissions = Permission::all();
+                    
+                    $user_have_permission = DB::table('model_has_permissions')->select('permission_id')->where('model_id',$id)->get()->pluck('permission_id');
+                    
+                    return view('user.update', ['data'=>$data, 'roles'=>$roles, 'permissions'=>$permissions, 'id'=>$id,'user_have_permission'=>$user_have_permission->toArray() ]);
+                }else{
+                    throw new Exception("You don't have permission to perform this action");
+                }
+                
+            }catch(Exception $e){
+                return redirect()->back()->with('error', $e->getMessage());
+            }
+        }else{
+            return view('errors.unauthenticate');
         }
     }
 
@@ -123,18 +159,24 @@ class UserController extends Controller
      */
     public function edit($id)
     { 
-        try{
-            $user = User::find($id);
-            if ($user->hasRole(Role::all()) || $user->can('edit article')){
-                $user = User::find($id);       
-                $roles = Role::all();
-                $permissions = Permission::all();
-                return view('user.edit', ['user' => $user, 'roles' => $roles, 'permissions' => $permissions]);
-            }else{
-                throw new Exception("You don't have permission to perform this action");
+        if(auth()->user()->can('edit user')){
+
+            try{
+                $user = User::find($id);
+                if ($user->hasRole(Role::all()) || $user->can('edit article')){
+                    $user = User::find($id);       
+                    $roles = Role::all();
+                    $permissions = Permission::all();
+                    
+                    return view('user.edit', ['user' => $user, 'roles' => $roles, 'permissions' => $permissions]);
+                }else{
+                    throw new Exception("You don't have permission to perform this action");
+                }
+            }catch(Exception $e){
+                return redirect()->back()->with('error', $e->getMessage());
             }
-        }catch(Exception $e){
-            return redirect()->back()->with('error', $e->getMessage());
+        }else{
+            return view('errors.unauthenticate');
         }
     }
 
@@ -149,87 +191,99 @@ class UserController extends Controller
     {
         // dd($request->permission);
         
-        try{
-            $user = User::find($id);
-            if ($user->hasRole(Role::all()) || $user->can('edit article')){
-                // dd("============");
-                $user->syncPermissions($request->permission);
-                $user->syncRoles($request->role);
-                $user->name = isset($request->name) ? $request->name : null;
-                $user->email = isset($request->email) ? $request->email : null;
-                $user->save();
-                return redirect()->back()->with('success', 'Success');
+        if(auth()->user()->can('edit user')){
+
+            try{
+                $request->validate([
+                    'name'=> 'required',
+                    'email'=> 'required'
+                    ]);
+                    
+                    
+                    $user = User::find($id);
+                    if ($user->hasRole(Role::all()) || $user->can('edit article')){
+                        // dd("============");
+                        $user->syncPermissions($request->permission);
+                        $user->syncRoles($request->role);
+                        $user->name = isset($request->name) ? $request->name : null;
+                        $user->email = isset($request->email) ? $request->email : null;
+                        $user->save();
+                        return redirect()->back()->with('success', 'Success');
+                    }else{
+                        throw new Exception('Please select Role or Permission');
+                    }
+                    /*            $user = User::where(['id'=>$request->hidden])->first();
+                    
+                    $roles = $request->role;
+                    
+                    $permissions = $request->permission;
+                    $rolein = Role::all();
+                    $permissionin = Permission::all();
+                    $i = 0;
+                    $y = 0;
+                    
+                    if(!empty($rolein)){
+                        $x = 0;
+                        while($x<count($rolein)){
+                            if($user->hasRole($rolein[$x])){
+                                $user->removeRole($rolein[$x]);
+                            }
+                            $x++;
+                        }
+                        
+                    }
+                    
+                    if(!empty($roles)){
+                        
+                        while($i<count($roles)){
+                            $role = Role::where(['id'=> $roles[$i]])->first();
+                            $usergive_r = $user->assignRole($role);
+                            $i++;
+                        }
+                    }
+                    
+                    if(!empty($permissionin)){
+                        $z = 0;
+                        while($z<count($permissionin)){
+                            if($user->hasPermissionTo($permissionin[$z])){
+                                $user->revokePermissionTo($permissionin[$z]);
+                                
+                            }
+                            $z++;
+                        }
+                        
+                    }
+                    
+                    if(!empty($permissions)){
+                        
+                        
+                        while($y<count($permissions)){
+                            $permission = Permission::where(['id'=>$permissions[$y]])->first();
+                            $usergive_p = $user->givePermissionTo($permission);
+                            $y++;
+                        }
+                    }
+                    
+                    
+                    if($usergive_p){
+                        return redirect()->route('user.index')->with('success', 'Success');
+                    }
+                    elseif($usergive_r){
+                        return redirect()->route('user.index')->with('success', 'Success');
+                    }
+                    else{
+                        throw new Exception('Plese select the value');
+                    }
+                    */
+                }catch(Exception $e){
+                    // return view('errors.user', ['error'=>$e->getMessage()]);
+                    return redirect()->back()->with('error', $e->getMessage());
+                    
+                }
+
             }else{
-                throw new Exception('Please select Role or Permission');
+                return view('errors.unauthenticate');
             }
-/*            $user = User::where(['id'=>$request->hidden])->first();
-
-            $roles = $request->role;
-            
-            $permissions = $request->permission;
-            $rolein = Role::all();
-            $permissionin = Permission::all();
-            $i = 0;
-            $y = 0;
-
-            if(!empty($rolein)){
-                $x = 0;
-                while($x<count($rolein)){
-                    if($user->hasRole($rolein[$x])){
-                        $user->removeRole($rolein[$x]);
-                    }
-                    $x++;
-                }
-
-            }
-
-            if(!empty($roles)){
-
-                while($i<count($roles)){
-                $role = Role::where(['id'=> $roles[$i]])->first();
-                $usergive_r = $user->assignRole($role);
-                $i++;
-            }
-            }
-
-            if(!empty($permissionin)){
-                $z = 0;
-                while($z<count($permissionin)){
-                    if($user->hasPermissionTo($permissionin[$z])){
-                        $user->revokePermissionTo($permissionin[$z]);
-
-                    }
-                    $z++;
-                }
-
-            }
-            
-            if(!empty($permissions)){
-
-                
-                while($y<count($permissions)){
-                    $permission = Permission::where(['id'=>$permissions[$y]])->first();
-                    $usergive_p = $user->givePermissionTo($permission);
-                    $y++;
-                }
-            }
-            
-
-            if($usergive_p){
-                return redirect()->route('user.index')->with('success', 'Success');
-            }
-            elseif($usergive_r){
-                return redirect()->route('user.index')->with('success', 'Success');
-            }
-            else{
-                throw new Exception('Plese select the value');
-            }
-            */
-        }catch(Exception $e){
-            // return view('errors.user', ['error'=>$e->getMessage()]);
-            return redirect()->back()->with('error', $e->getMessage());
-
-        }
     }
 
     /**
@@ -240,8 +294,14 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        User::destroy($id);
-        return redirect()->back();
+        if(auth()->user()->can('delete user')){
+
+            User::destroy($id);
+            return redirect()->back()->with('success', 'Successfully deleted');
+        
+        }else{
+            return view('errors.unauthenticate');
+        }
         
     }
 }

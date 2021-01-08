@@ -1,8 +1,6 @@
 @extends('layouts.admin')
 @section('content')
-@if(session()->has('success'))
-<p class="alert alert-success"> {{session()->get('success')}}</p>
-@endif
+
 
 <div class="d-flex justify-content-between mb-5">
     <h5>Roles</h5>
@@ -15,12 +13,11 @@
         <th style="width: 4%;">Role</th>
         <th style="width: 15%;">Date Created</th>
         <th style="width: 15%;">Updated Created</th>
-        <th style="width: 4%;">Update</th>
-        <th style="width: 4%;">Delete</th>
+        <th style="width: 20%;">Actions</th>
     </tr>
 </thead>
 
-@foreach($role as $role)
+@foreach($data as $role)
 <tr>
 
        
@@ -29,11 +26,10 @@
         <td>{{$role->name}}</td>
         <td>{{$role->created_at}}</td>
         <td>{{$role->updated_at}}</td>
-        <td>
-            <a href="role/{{$role->id}}"><button class="btn btn-success btn-sm">Update</button></a>
-        </td>
-        <td>
-            <form action="{{route ('role.destroy', $role->id)}}" style="float: right; " method="POST">
+        <td class="row justify-content-between ml-1 mr-1">
+            <a href="role/{{$role->id}}/edit"><button class="btn btn-success btn-sm">Edit</button></a>
+        
+            <form action="{{route ('role.destroy', $role->id)}}" method="POST">
             @csrf
             @method('Delete')
             <button class="btn btn-danger btn-sm">Delete</button>
@@ -48,6 +44,9 @@
 </tr>
 @endforeach
 
+<span>
+
+</span>
 <div>
 
 </div>

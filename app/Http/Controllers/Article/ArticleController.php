@@ -16,18 +16,25 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        try{
-            $data = Article::all();
-            if(count($data) == 0){
-                throw new Exception('Please Create Article');
-
+        if(auth()->user()->can('list article')){
+            try{
+                $data = Article::paginate(10);
+                if(count($data) == 0){
+                    throw new Exception('Please Create Article');
+    
+                }
+                return view('article.index', ['data'=>$data]);
+                
+            }catch(Exception $e){
+                return view('errors.article', ['error'=>$e->getMessage()]);
+    
             }
-            return view('article.index', ['data'=>$data]);
-            
-        }catch(Exception $e){
-            return view('errors.article', ['error'=>$e->getMessage()]);
 
         }
+        else{
+            return view('errors.unauthenticate');
+        }
+        
     }
 
     /**
@@ -37,8 +44,14 @@ class ArticleController extends Controller
      */
     public function create()
     {
-        $id = auth()->id();
-        return view('article/create', ['id'=>$id]);
+        if(auth()->user()->can('create article')){
+            $id = auth()->id();
+            return view('article/create', ['id'=>$id]);
+
+        }else{
+            return view('errors.unauthenticate');
+        }
+        
         
     }
 
@@ -50,33 +63,36 @@ class ArticleController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'title' => 'required',
-            'subheading' => 'required',
-            'metakey' => 'required',
-            'shortdescription' => 'required',
-            'shortmeta' => 'required',
-            'content'=>'required|max:10000|min:10',
-        ]);
-        try{
-            $article = new Article();
-            $article->title = $request->title;
-            $article->sub_heading = $request->subheading;
-            $article->meta_key = $request->metakey;
-            $article->short_description = $request->shortdescription;
-            $article->meta_description = $request->shortmeta;
-            $article->content = $request->content;
-            $save = $article->save();
-            if($save ){
-                return redirect()->route('article.index')->with('success', "Succesfully Article created.");
+        if(auth()->user()->can('create article')){
+
+            
+            $request->validate([
+                'title' => 'required',
+                'metakey' => 'required',
+                'content'=>'required|max:10000|min:10',
+                ]);
+                try{
+                    $article = new Article();
+                    $article->title = $request->title;
+                    $article->sub_heading = $request->subheading;
+                    $article->meta_key = $request->metakey;
+                    $article->short_description = $request->shortdescription;
+                    $article->meta_description = $request->shortmeta;
+                    $article->content = $request->content;
+                    $save = $article->save();
+                    if($save ){
+                        return redirect()->back()->with('success', "Succesfully Article created.");
+                    }else{
+                        return redirect()->back()->with('error', "Created");
+                    }
+                    
+                    
+                }catch(Exception $e){
+                    return view('errors.article', ['error'=>$e->getMessage()]);
+                }
             }else{
-                return redirect()->back()->with('error', "Created");
+                return view('errors.unauthenticate');
             }
-            
-            
-        }catch(Exception $e){
-            return view('errors.article', ['error'=>$e->getMessage()]);
-        }
     }
 
     /**
@@ -87,7 +103,13 @@ class ArticleController extends Controller
      */
     public function show($id)
     {
-        return view('article/update', ['id'=>$id]);
+        if(auth()->user()->can('view article')){
+
+            $data = Article::find($id);
+            return view('article.show', ['data'=>$data]);
+        }else{
+            return view('errors.unauthenticate');
+        }
     }
 
     /**
@@ -98,6 +120,13 @@ class ArticleController extends Controller
      */
     public function edit($id)
     {
+        if(auth()->user()->can('edit article')){
+
+            $data = Article::find($id);
+            return view('article/edit', ['id'=>$id, 'data'=>$data]);
+        }else{
+            return view('errors.unauthenticate');
+        }
         
     }
 
@@ -110,19 +139,34 @@ class ArticleController extends Controller
      */
     public function update(Request $request,$id)
     {
-        $request->validate(
-            ['article' => 'required|min:10',
-            ]
-        );
+        if(auth()->user()->can('edit article')){
 
-        try{
-            Article::where(['id'=>$request->id])->update(['name'=>$request->article]);
-            return redirect('article.index')->with('success', 'Successfully Updated');
-
-        }catch(Exception $e){
-            return view('errors.article', ['error'=>$e]);
-
+            $request->validate(
+                ['article' => 'required|min:10',
+                'title' => 'required',
+                'metakey' => 'required'
+                ]
+            );
+            
+            try{
+                Article::where(['id'=>$request->id])->update([
+                    'title'=>$request->title,
+                    'sub_heading'=>$request->subheading,
+                    'meta_key'=>$request->metakey,
+                    'short_description'=>$request->shortdescription,
+                    'meta_description'=>$request->metadescription,
+                    'content'=>$request->article
+                ]);
+                return redirect('article')->with('success', 'Successfully Updated');
+                
+            }catch(Exception $e){
+                return view('errors.article', ['error'=>$e]);
+                
+            }
+        }else{
+            return view('errors.unauthenticate');
         }
+
     }
 
     /**
@@ -133,13 +177,18 @@ class ArticleController extends Controller
      */
     public function destroy($id)
     {
-        try{
-            Article::destroy($id);
-        }catch(Exception $e){
-            return view('errors.article', ['error'=>$e]);
+        if(auth()->user()->can('delete article')){
 
+            try{
+                Article::destroy($id);
+            }catch(Exception $e){
+                return view('errors.article', ['error'=>$e]);
+                
+            }
+            
+            return redirect()->back()->with('success', 'Article deleted');
+        }else{
+            return view('errors.unauthenticate');
         }
-        
-        return redirect('article.index');
     }
 }

@@ -86,6 +86,15 @@ User->assignPermission;
 
 -> Current user can not be update own roles & permission.
 
--> Add featured Image option in Article & Page for both while creating or update.
+-> Add featured Image option in Page while creating or update.
 
 -> Cange password for every logged in user.
+
+
+
+probs
+pagination - css
+return back after create in every module 
+how to hide in loop to Manager.
+how to hide login user update own power.
+if give permission in registration anyone can be manager and munuplate data.

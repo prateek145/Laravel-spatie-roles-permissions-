@@ -39,7 +39,7 @@
                 <a class="nav-link dropdown-toggle" id="userDropdown" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
                     <a class="dropdown-item" href="#">Settings</a>
-                    <a class="dropdown-item" href="#">Activity Log</a>
+                    <a class="dropdown-item" href="{{route('changepassword')}}">Change Password</a>
                     <div class="dropdown-divider"></div>
 
                     <form action="{{ route('logout') }}" method="POST">
@@ -61,17 +61,49 @@
                             Dashboard
                         </a><br>
 
-                        <a class="nav-link collapsed" href="{{route('user.index')}}">
-                            Users
-                        </a>
+                        <div class="dropdown">
+                            <a type="button" class="nav-link dropdown-toggle" data-toggle="dropdown" href="">
+                                Users
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="{{route ('user.index')}}">main</a>
+                                <a class="dropdown-item" href="#">Link 2</a>
+                                <a class="dropdown-item" href="#">Link 3</a>
+                            </div>
+                        </div>
 
-                        <a class="nav-link collapsed" href="{{route('role.index')}}">
-                            Roles
-                        </a>
+                        <div class="dropdown">
+                            <a type="button" class="nav-link dropdown-toggle" data-toggle="dropdown" href="">
+                                Roles
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="{{route ('role.index')}}">main</a>
+                                <a class="dropdown-item" href="#">Link 2</a>
+                                <a class="dropdown-item" href="#">Link 3</a>
+                            </div>
+                        </div>
 
-                        <a class="nav-link collapsed" href="{{route('article.index')}}">
-                            Article
-                        </a>
+                        <div class="dropdown">
+                            <a type="button" class="nav-link dropdown-toggle" data-toggle="dropdown" href="">
+                                Articles
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="{{route ('article.index')}}">main</a>
+                                <a class="dropdown-item" href="#">Link 2</a>
+                                <a class="dropdown-item" href="#">Link 3</a>
+                            </div>
+                        </div>
+
+                        <div class="dropdown">
+                            <a type="button" class="nav-link dropdown-toggle" data-toggle="dropdown" href="">
+                                Pages
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="{{route ('page.index')}}">main</a>
+                                <a class="dropdown-item" href="#">Link 2</a>
+                                <a class="dropdown-item" href="#">Link 3</a>
+                            </div>
+                        </div>
 
                     </div>
                 </div>
@@ -155,7 +187,7 @@
                             <div class="table-responsive">
                                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                                     <!---body start from here --->
-                                    @include('layouts.message') 
+                                    @include('layouts.message')
 
                                     @yield('content')
 

@@ -8,21 +8,25 @@
 <form action="{{route ('role.store')}}" method="POST" class="row">
     @csrf
 
-    <div class="row">
-        <input type="text" name="name" placeholder="Name" class="col-md-4 form-control ml-5"><br><br>
+    <div>
+        <input type="text" name="name" placeholder="Name" class="col-md-4 form-control ml-5 @error('name') is-invalid @enderror">
         @error('name')
-        <p class="alert alert-danger" style="width: 250px;">{{$message}}</p>
+        <p class="text-danger ml-5" style="width: 250px;">{{$message}}</p>
         @enderror
 
-        
-        @foreach($permission as $permissions)
-        <input type="checkbox" name="first[]" value="{{$permissions->id}}" class="ml-4">
-        <label for="first">{{$permissions->name}} </label>
-       @endforeach
+        <h5 class="ml-5 mt-5">Permissions</h5>
+        <div class="row ml-5" >
+            
+            @foreach($permission as $permissions)
+            <input type="checkbox" name="first[]" value="{{$permissions->id}}" class="ml-4">
+            <label for="first">{{$permissions->name}} </label>
+            @endforeach
+        </div>
+
 
 
     </div>
-    <input class="btn btn-success btn-sm mt-5 ml-5" type="submit">
+    <input class="btn btn-success  mt-5 ml-5" type="submit">
 
 </form>
 
