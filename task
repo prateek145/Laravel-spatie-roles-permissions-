@@ -98,3 +98,12 @@ return back after create in every module
 how to hide in loop to Manager.
 how to hide login user update own power.
 if give permission in registration anyone can be manager and munuplate data.
+
+
+
+-----------------------
+create page redirect to list pages.
+edit user permission selected.
+error message display redirect back.
+signup link and login link 
+downloaded template implement
