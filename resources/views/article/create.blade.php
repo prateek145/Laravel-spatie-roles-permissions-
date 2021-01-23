@@ -55,6 +55,8 @@
 
     </div>
 
+    <input type="text" name="slug" value="{{old('slug')}}"><br>
+
     <input type="hidden" name="user_id" value="{{$id}}">
     <input type="submit" class="btn btn-success"><br>
 </form>

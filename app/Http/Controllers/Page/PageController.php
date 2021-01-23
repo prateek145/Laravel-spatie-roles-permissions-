@@ -50,7 +50,7 @@ class PageController extends Controller
             return view('page.create', ['id'=>$id]);
 
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
     }
 
@@ -88,7 +88,7 @@ class PageController extends Controller
 
                     $save = $page->save();
                     if($save ){
-                        return redirect()->back()->with('success', "Succesfully Article created.");
+                        return redirect('page')->with('success', "Succesfully Article created.");
                     }else{
                         return redirect()->back()->with('error', "Created");
                     }
@@ -98,7 +98,7 @@ class PageController extends Controller
                     return view('errors.page', ['error'=>$e->getMessage()]);
                 }
             }else{
-                return view('errors.unauthenticate');
+                return redirect()->back()->with('error', 'You are not authorize contact to admin.');
             }         
 
     }
@@ -117,7 +117,7 @@ class PageController extends Controller
             $data = Page::find($id);
             return view('page.show', ['data'=>$data]);
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
     }
 
@@ -134,7 +134,7 @@ class PageController extends Controller
             $data = Page::find($id);
             return view('page/edit', ['id'=>$id, 'data'=>$data]);
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
     }
 
@@ -185,7 +185,7 @@ class PageController extends Controller
                 
             }
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
     }
 
@@ -208,7 +208,7 @@ class PageController extends Controller
             
             return redirect()->back()->with('success', 'Page deleted');
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
     }
 }

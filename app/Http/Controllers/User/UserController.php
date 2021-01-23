@@ -56,7 +56,7 @@ class UserController extends Controller
             
             return view('user.create', ['role'=>$role, 'permissions'=>$permissions]);
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
     }
 
@@ -111,7 +111,7 @@ class UserController extends Controller
                     
                 }
             }else{
-                return view('errors.unauthenticate');
+                return redirect()->back()->with('error', 'You are not authorize contact to admin.');
             }
     }
 
@@ -127,7 +127,6 @@ class UserController extends Controller
 
             try{
                 $user = User::find($id);
-                if ($user->hasRole(Role::all()) || $user->can('view article')){
                     $data = User::find($id);
                     // dd($data->getAllPermissions(), $data->hasAllRoles(Role::all())); 
                     if(!$data){
@@ -139,15 +138,11 @@ class UserController extends Controller
                     $user_have_permission = DB::table('model_has_permissions')->select('permission_id')->where('model_id',$id)->get()->pluck('permission_id');
                     
                     return view('user.update', ['data'=>$data, 'roles'=>$roles, 'permissions'=>$permissions, 'id'=>$id,'user_have_permission'=>$user_have_permission->toArray() ]);
-                }else{
-                    throw new Exception("You don't have permission to perform this action");
-                }
-                
-            }catch(Exception $e){
+                }catch(Exception $e){
                 return redirect()->back()->with('error', $e->getMessage());
             }
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
     }
 
@@ -176,7 +171,7 @@ class UserController extends Controller
                 return redirect()->back()->with('error', $e->getMessage());
             }
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
     }
 
@@ -282,7 +277,7 @@ class UserController extends Controller
                 }
 
             }else{
-                return view('errors.unauthenticate');
+                return redirect()->back()->with('error', 'You are not authorize contact to admin.');
             }
     }
 
@@ -300,7 +295,7 @@ class UserController extends Controller
             return redirect()->back()->with('success', 'Successfully deleted');
         
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
         
     }

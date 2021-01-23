@@ -53,7 +53,7 @@ class RolePermissionController extends Controller
             return view('rolesandpermission.create', ['permission'=>$permission]);
         
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
     }
 
@@ -83,10 +83,10 @@ class RolePermissionController extends Controller
                     $i++;
                     
                 }
-                return redirect()->back()->with('success', 'Successfully Created');
+                return redirect('role')->with('success', 'Successfully Created');
         
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
            
         }
     }
@@ -119,7 +119,7 @@ class RolePermissionController extends Controller
             return view('rolesandpermission.update', ['id'=>$id, 'role'=>$role, 'permission'=>$permission, 'role_have_permissions'=>$role_have_permissions]);
         
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
     }
 
@@ -166,7 +166,7 @@ class RolePermissionController extends Controller
             }   
         
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
     }
 
@@ -184,7 +184,7 @@ class RolePermissionController extends Controller
             return redirect('role');
         
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
 
         }
     }

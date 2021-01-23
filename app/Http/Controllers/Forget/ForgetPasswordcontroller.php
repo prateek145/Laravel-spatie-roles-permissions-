@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
+use function PHPUnit\Framework\returnValue;
 use function PHPUnit\Framework\throwException;
 
 class ForgetPasswordcontroller extends Controller
@@ -20,18 +21,27 @@ class ForgetPasswordcontroller extends Controller
     function forgetpassword(Request $request){
 
         $request->validate([
-            'email'=>'required|max:100',
+            'passwordb'=>'required|max:100',
+            'password' => 'required',
+            'password1' => 'required'
         ]);
         try{
-            $user = User::where(['email'=>$request->email])->first();
-            if(!$user){
-                throw new Exception('User does not exists');
+            $userid = auth()->id();
+            $user = User::find($userid);
+            if(Hash::check($request->passwordb, $user->password)){
 
+                if($request->password == $request->password1){
+                    User::where(['id'=>$user->id])->update(['password'=>Hash::make($request->password)]);
+                    return redirect('forget')->with('success', 'Succesfully Password Change');
+                 
+                }else{
+                    return redirect()->back()->with('error', 'password does not match');
+                }
+                
+            }else{
+                return redirect()->back()->with('error', 'Current Password does not match');
             }
-            if($user){
-                $data = $user->id;
-                return redirect('ChangePassword')->with('id', $data);
-            }
+            exit;
 
         }catch(Exception $e){
                 return redirect()->back()->with('error', $e->getMessage());

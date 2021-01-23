@@ -38,7 +38,7 @@
 
             <a href="article/{{$item->id}}/edit"><button class="btn btn-success btn-sm ">Edit</button></a>
 
-            <a href="article/{{$item->id}}"><button class="btn btn-primary btn-sm">show</button></a>
+            <a href="article/{{$item->slug}}"><button class="btn btn-primary btn-sm">show</button></a>
 
             <form action="{{route('article.destroy', $item->id)}}" method="POST">
                 @csrf

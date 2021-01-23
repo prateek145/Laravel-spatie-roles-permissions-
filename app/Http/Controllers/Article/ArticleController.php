@@ -49,7 +49,7 @@ class ArticleController extends Controller
             return view('article/create', ['id'=>$id]);
 
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
         
         
@@ -79,9 +79,10 @@ class ArticleController extends Controller
                     $article->short_description = $request->shortdescription;
                     $article->meta_description = $request->shortmeta;
                     $article->content = $request->content;
+                    $article->slug = $request->slug;
                     $save = $article->save();
                     if($save ){
-                        return redirect()->back()->with('success', "Succesfully Article created.");
+                        return redirect('article')->with('success', "Succesfully Article created.");
                     }else{
                         return redirect()->back()->with('error', "Created");
                     }
@@ -91,7 +92,7 @@ class ArticleController extends Controller
                     return view('errors.article', ['error'=>$e->getMessage()]);
                 }
             }else{
-                return view('errors.unauthenticate');
+                return redirect()->back()->with('error', 'You are not authorize contact to admin.');
             }
     }
 
@@ -108,7 +109,7 @@ class ArticleController extends Controller
             $data = Article::find($id);
             return view('article.show', ['data'=>$data]);
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
     }
 
@@ -125,7 +126,7 @@ class ArticleController extends Controller
             $data = Article::find($id);
             return view('article/edit', ['id'=>$id, 'data'=>$data]);
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
         
     }
@@ -164,7 +165,7 @@ class ArticleController extends Controller
                 
             }
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
 
     }
@@ -188,7 +189,7 @@ class ArticleController extends Controller
             
             return redirect()->back()->with('success', 'Article deleted');
         }else{
-            return view('errors.unauthenticate');
+            return redirect()->back()->with('error', 'You are not authorize contact to admin.');
         }
     }
 }
